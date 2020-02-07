@@ -37,9 +37,9 @@ func main() {
 	if testing {
 		debug = true
 	}
-	config := newrelic.NewConfig(revel.AppName, license)
-	logger := nrlog.NewLogger(Log, debug)
-	config.Logger = nrlog.NewLogger(Log, debug)
+	config := newrelic.NewConfig("myappname", license)
+	logger := nrlog.NewLogger(Log, debug, true)
+	config.Logger = logger
 	app, err = newrelic.NewApplication(config)
 	if err != nil {
 		panic(err)

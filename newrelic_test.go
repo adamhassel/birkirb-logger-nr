@@ -39,6 +39,37 @@ func TestNRWithFieldsOutput(t *testing.T) {
 	}
 }
 
+
+func TestNRWithRedacting(t *testing.T) {
+	l, b := newBufferedNRLog()
+	d := map[string]interface{}{
+		"license_key": "123456abcd",
+	}
+	l.Warn("This is a message", d)
+
+	expectedMatch := `(?i)warn.*This is a message.*license_key=\[REDACTED\].*`
+	actual := b.String()
+	if ok, _ := regexp.Match(expectedMatch, []byte(actual)); !ok {
+		t.Errorf("Log output mismatch %s (actual) != %s (expected)", actual, expectedMatch)
+	}
+}
+
+
+func TestNRWithNoRedacting(t *testing.T) {
+	l, b := newBufferedNRLogUncensored()
+	d := map[string]interface{}{
+		"license_key": "123456abcd",
+	}
+	l.Warn("This is a message", d)
+
+	expectedMatch := `(?i)warn.*This is a message.*license_key=123456abcd.*`
+	actual := b.String()
+	if ok, _ := regexp.Match(expectedMatch, []byte(actual)); !ok {
+		t.Errorf("Log output mismatch %s (actual) != %s (expected)", actual, expectedMatch)
+	}
+}
+
+
 func TestNRWithMultipleFieldsOutput(t *testing.T) {
 	l, b := newBufferedNRLog()
 	d := map[string]interface{}{
@@ -68,5 +99,13 @@ func newBufferedNRLog() (newrelic.Logger, *bytes.Buffer) {
 	var bb = bytes.NewBuffer(b)
 	sl := syslog.New(bb, "", 0)
 	l := stdlib.NewLogger(sl)
-	return NewLogger(l, true), bb
+	return NewLogger(l, true, true), bb
+}
+
+func newBufferedNRLogUncensored() (newrelic.Logger, *bytes.Buffer) {
+	var b []byte
+	var bb = bytes.NewBuffer(b)
+	sl := syslog.New(bb, "", 0)
+	l := stdlib.NewLogger(sl)
+	return NewLogger(l, true, false), bb
 }
