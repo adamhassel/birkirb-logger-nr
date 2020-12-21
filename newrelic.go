@@ -56,6 +56,7 @@ func (l Logger) DebugEnabled() bool {
 	return l.debug
 }
 var filterRegEx = regexp.MustCompile(`[0-9a-z]+`)
+var errorRegEx = regexp.MustCompile(`license_key=[0-9]{40}`)
 
 func (l Logger) convert(c map[string]interface{}) []interface{} {
 	output := make([]interface{}, 0, 2*len(c))
@@ -63,6 +64,9 @@ func (l Logger) convert(c map[string]interface{}) []interface{} {
 		 s := fmt.Sprint(v)
 		 if k == "license_key" && l.censor {
 			 s = filterRegEx.ReplaceAllString(s, "[REDACTED]")
+		 }
+		 if k == "error" && l.censor {
+			 s = errorRegEx.ReplaceAllString(s, "license_key=[REDACTED]")
 		 }
 		output = append(output, k, s)
 	}
